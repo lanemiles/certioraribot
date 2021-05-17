@@ -44,6 +44,10 @@ class Case(models.Model):
 
     def petitioner_attorneys(self):
         j = json.loads(self.case_data)
+        if 'Petitioner' not in j:
+            with open("missing_petitioner.txt", "a") as f:
+                f.write(self.docket_number + "\n")
+            return []
         return j["Petitioner"]
         
     def petitioner_attorney_str(self):

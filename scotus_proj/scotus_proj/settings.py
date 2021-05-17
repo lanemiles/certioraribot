@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "django_cron",
     'scotus_app.apps.ScotusAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+CRON_CLASSES = [
+    "scotus_app.crons.UpdateCases",
+    "scotus_app.crons.SendEmail",
 ]
 
 MIDDLEWARE = [
