@@ -1,0 +1,9 @@
+{% if cases %}
+    <ul>
+    {% for case in cases %}
+        <li><a href="cases/{{ case.docket_number }}/">{{ case.docket_number }} (Docketed: {{ case.docketed_date_str }})</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No cases are available.</p>
+{% endif %}

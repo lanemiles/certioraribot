@@ -1,0 +1,19 @@
+Case.objects.create(
+    docket_number = "20-8001",
+    term_year = 20,
+    case_number = 8001,
+    case_data = "",
+    need_to_send_intial_email = False,
+    need_to_send_cfr_email = False,
+    consider_for_cfr = True
+)
+
+Case.objects.create(
+    docket_number = "20-1550",
+    term_year = 20,
+    case_number = 1550,
+    case_data = "",
+    need_to_send_intial_email = False,
+    need_to_send_cfr_email = False,
+    consider_for_cfr = True
+)
