@@ -38,3 +38,14 @@ def todays_cases(request):
         "cfr_data": cfr_data,
         "initial_data": initial_data,
     })
+
+def consider_for_cfr_cases(request):
+    cases = Case.objects.filter(consider_for_cfr = True)
+    cases_lst = sorted(list(cases), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )
+    return render(request, 'scotus_app/index.html', { "cases": cases_lst })
+
+
+def has_cfr_cases(request):
+    cases = Case.objects.filter(consider_for_cfr = True, need_to_send_cfr_email = False)
+    cases_lst = sorted(list(cases), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )
+    return render(request, 'scotus_app/index.html', { "cases": cases_lst })
