@@ -1,7 +1,8 @@
+<h1>{{ headline_str }}</h1>
 {% if cases %}
     <ul>
     {% for case in cases %}
-        <li><a href="cases/{{ case.docket_number }}/">{{ case.docket_number }} (Docketed: {{ case.docketed_date_str }})</a></li>
+        <li><a href="{{ base_url_adjustment }}cases/{{ case.docket_number }}/">{{ case.docket_number }} (Docketed: {{ case.docketed_date_str }})</a></li>
     {% endfor %}
     </ul>
 {% else %}

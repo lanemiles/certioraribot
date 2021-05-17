@@ -5,8 +5,12 @@ import json
 # Create your views here.
 def index(request):
     cases = Case.objects.all()
-    cases_lst = sorted(list(cases), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )
-    return render(request, 'scotus_app/index.html', { "cases": cases_lst })
+    cases_lst = sorted(list(cases), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )[:500]
+    return render(request, 'scotus_app/index.html', {
+        "headline_str": "Welcome to Cert. Bot",
+        "base_url_adjustment": "",
+        "cases": cases_lst
+    })
 
 def detail(request, docket_number):
     case = Case.objects.get(docket_number = docket_number)
@@ -21,7 +25,7 @@ def todays_cases(request):
     pretty_str = "There were %i CFRs requested and %i new cert petitions filed today." % (len(cfr_email_cases), len(initial_email_cases))
     
     cfr_data = [{
-        "url": x.case_url(),
+        "case_url": x.case_url(),
         "docket": x.docket_number
     } for x in cfr_email_cases]
 
@@ -39,13 +43,28 @@ def todays_cases(request):
         "initial_data": initial_data,
     })
 
-def consider_for_cfr_cases(request):
-    cases = Case.objects.filter(consider_for_cfr = True)
-    cases_lst = sorted(list(cases), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )
-    return render(request, 'scotus_app/index.html', { "cases": cases_lst })
-
-
-def has_cfr_cases(request):
+def cases_to_consider_for_cfr(request):
     cases = Case.objects.filter(consider_for_cfr = True, need_to_send_cfr_email = False)
     cases_lst = sorted(list(cases), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )
-    return render(request, 'scotus_app/index.html', { "cases": cases_lst })
+    return render(request, 'scotus_app/index.html', {
+        "headline_str": "Cases Still Considering for CFR",
+        "base_url_adjustment": "../",
+        "cases": cases_lst
+    })
+
+
+def cases_with_cfr(request):
+    cases = Case.objects.all()
+    cases_with_cfr = []
+    for c in cases:
+        try:
+            if 'Response Requested' in str(json.loads(c.case_data)["ProceedingsandOrder"]):
+                cases_with_cfr.append(c)
+        except:
+            continue
+    cases_lst = sorted(list(cases_with_cfr), key = lambda x: (x.docketed_date(), x.term_year, x.case_number), reverse=True )
+    return render(request, 'scotus_app/index.html', {
+        "headline_str": "Cases With a CFR",
+        "base_url_adjustment": "../",
+        "cases": cases_with_cfr
+    })
