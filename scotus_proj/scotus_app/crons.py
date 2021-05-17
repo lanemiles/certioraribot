@@ -11,13 +11,13 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from django.template.loader import render_to_string
-from django.apps import apps
-from django.conf import settings
+import sys
+
 
 class UpdateCases(CronJobBase):
-    RUN_EVERY_MINS = 60 * 24
+    RUN_AT_TIMES = ["10:00"]
 
-    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'scotus_app.cron.update_cases'
 
     def do(self):
@@ -27,24 +27,24 @@ class UpdateCases(CronJobBase):
             today = datetime.today().strftime("%D")
             f.write(today + "\n")
 
-    
     def update_new_dockets(self):
         # Get the max term year
-        # term_year = Case.objects.aggregate(Max('term_year'))['term_year__max']
-        # if term_year is None:
-        #     term_year = 20
-        term_year = 18
+        term_year = Case.objects.aggregate(Max('term_year'))['term_year__max']
+        if term_year is None:
+            term_year = 20
 
         # Get the max paid and free case numbers
         SWITCH_POINT = 5000
-        max_paid_case_num =  Case.objects.filter(term_year = term_year, case_number__lte = SWITCH_POINT).aggregate(Max('case_number'))['case_number__max']
-        max_free_case_num = Case.objects.filter(term_year = term_year, case_number__gte = SWITCH_POINT + 1).aggregate(Max('case_number'))['case_number__max']
+        max_paid_case_num = Case.objects.filter(term_year=term_year, case_number__lte=SWITCH_POINT).aggregate(
+            Max('case_number'))['case_number__max']
+        max_free_case_num = Case.objects.filter(
+            term_year=term_year, case_number__gte=SWITCH_POINT + 1).aggregate(Max('case_number'))['case_number__max']
 
         if max_paid_case_num is None:
             max_paid_case_num = 0
         if max_free_case_num is None:
             max_free_case_num = SWITCH_POINT
-        
+
         # Generate starting points
         case_nums_to_explore = queue.Queue()
         case_nums_to_explore.put(max_paid_case_num + 1)
@@ -52,52 +52,56 @@ class UpdateCases(CronJobBase):
 
         # Explore for new dockets
         while not case_nums_to_explore.empty():
-            time.sleep(1)
+            time.sleep(.5)
             curr_case_num = case_nums_to_explore.get()
-            self.explore_new_docket(term_year, curr_case_num, case_nums_to_explore)
-    
+            self.explore_new_docket(
+                term_year, curr_case_num, case_nums_to_explore)
+
     def update_cfr_dockets(self):
         # Explore for new CFRs
-        dockets_to_explore = ["%s-%s" % (x.term_year, x.case_number) for x in list(Case.objects.filter(consider_for_cfr = True))]
+        dockets_to_explore = ["%s-%s" % (x.term_year, x.case_number)
+                              for x in list(Case.objects.filter(consider_for_cfr=True))]
         for docket in dockets_to_explore:
-            time.sleep(1)
+            time.sleep(.5)
             self.explore_cfr_docket(docket)
-
 
     def explore_new_docket(self, term_year, case_number, q):
         try:
             docket_num = "%s-%s" % (term_year, case_number)
-            url = "https://www.supremecourt.gov/RSS/Cases/JSON/%s.json" % (docket_num)
+            url = "https://www.supremecourt.gov/RSS/Cases/JSON/%s.json" % (
+                docket_num)
             data = requests.get(url)
             if data is not None and data.status_code == 200:
                 json_data = json.loads(data.text)
                 Case.objects.create(
-                    term_year = term_year,
-                    case_number = case_number,
-                    docket_number = docket_num,
-                    case_data = json.dumps(json_data),
-                    need_to_send_initial_email = True,
-                    need_to_send_cfr_email = False,
-                    consider_for_cfr = self.should_consider_for_cfr(json_data),
-                    question_presented = ""
+                    term_year=term_year,
+                    case_number=case_number,
+                    docket_number=docket_num,
+                    case_data=json.dumps(json_data),
+                    need_to_send_initial_email=True,
+                    need_to_send_cfr_email=False,
+                    consider_for_cfr=self.should_consider_for_cfr(json_data),
+                    question_presented=self.get_qp(json_data, docket_num)
                 )
                 print("Found: %s" % docket_num)
                 q.put(case_number + 1)
             else:
                 print("Did not find: %s" % docket_num)
-        except Exception as e:
+        except:
+            e = sys.exc_info()[0]
             with open("new_docket_errors.txt", "a") as f:
                 f.write("%s-%s: %s \n", term_year, case_number, e)
             print("SOMETHING WENT WRONG TRYING TO CHECK DOCKET %s" % e)
 
     def explore_cfr_docket(self, docket_num):
         try:
-            url = "https://www.supremecourt.gov/RSS/Cases/JSON/%s.json" % (docket_num)
+            url = "https://www.supremecourt.gov/RSS/Cases/JSON/%s.json" % (
+                docket_num)
             print("Checking: %s" % docket_num)
             data = requests.get(url)
             if data is not None and data.status_code == 200:
                 json_data = json.loads(data.text)
-                case = Case.objects.get(docket_number = docket_num)
+                case = Case.objects.get(docket_number=docket_num)
 
                 has_cfr = self.now_has_cfr(json_data)
                 consider_for_cfr = self.should_consider_for_cfr(json_data)
@@ -112,7 +116,8 @@ class UpdateCases(CronJobBase):
                 else:
                     print("No change: %s" % docket_num)
                 case.save()
-        except Exception as e:
+        except:
+            e = sys.exc_info()[0]
             with open("cfr_docket_errors.txt", "a") as f:
                 f.write("%s: %s \n", docket_num, e)
             print("SOMETHING WENT WRONG TRYING TO CHECK FOR CFR %s" % e)
@@ -174,11 +179,11 @@ class UpdateCases(CronJobBase):
             file_loc = "tmp.pdf"
             self.download_pdf(url, file_loc)
             return self.parse_pdf(file_loc)
-        except Exception as e:
+        except:
+            e = sys.exc_info()[0]
             with open("qp_errors.txt", "a") as f:
                 f.write("%s: %s \n", docket_num, e)
             return None
-
 
     def get_qp_url(self, json_data):
         url = None
@@ -191,7 +196,6 @@ class UpdateCases(CronJobBase):
                         if l["Description"] == 'Petition':
                             url = l["DocumentUrl"]
         return url
-        
 
     def now_has_cfr(self, json_data):
         proceedings = str(json_data["ProceedingsandOrder"])
@@ -199,15 +203,16 @@ class UpdateCases(CronJobBase):
 
     def should_consider_for_cfr(self, json_data):
         proceedings = str(json_data["ProceedingsandOrder"])
-        past_cfr_strs = ['Brief of respondent', 'Memorandum of respondent', 'Petition DENIED']
+        past_cfr_strs = ['Brief of respondent',
+                         'Memorandum of respondent', 'Petition DENIED']
         past_cfr = any([s in proceedings for s in past_cfr_strs])
         return not past_cfr
-            
+
 
 class SendEmail(CronJobBase):
-    RUN_EVERY_MINS = 1
+    RUN_AT_TIMES = ["11:00"]
 
-    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'scotus_app.crons.send_email'
 
     def do(self):
@@ -219,10 +224,12 @@ class SendEmail(CronJobBase):
                 if last_email_date == last_updated_date:
                     return
 
-        initial_email_cases = Case.objects.filter(need_to_send_initial_email = True)
-        cfr_email_cases = Case.objects.filter(need_to_send_cfr_email = True)
+        initial_email_cases = Case.objects.filter(
+            need_to_send_initial_email=True)
+        cfr_email_cases = Case.objects.filter(need_to_send_cfr_email=True)
 
-        pretty_str = "There were %i CFRs requested and %i new cert petitions filed today." % (len(cfr_email_cases), len(initial_email_cases))
+        pretty_str = "There were %i CFRs requested and %i new cert petitions filed today." % (
+            len(cfr_email_cases), len(initial_email_cases))
 
         cfr_data = [{
             "url": x.case_url(),
@@ -243,14 +250,13 @@ class SendEmail(CronJobBase):
         server.login('certioraribot@gmail.com', 'scotus123')
 
         fromx = 'certioraribot@gmail.com'
-        subject = '[Certiorari Bot] New Cert Petitions for %s' % datetime.now().strftime("%B %d, %Y")
+        subject = '[Certiorari Bot] New Cert Petitions for %s' % datetime.now(
+        ).strftime("%B %d, %Y")
         html = render_to_string('scotus_app/email.html', {
             "pretty_str": pretty_str,
             "cfr_data": cfr_data,
             "initial_data": initial_data,
         })
-
-        
 
         msg = MIMEText(html, 'html')
         msg['Subject'] = subject
@@ -260,7 +266,7 @@ class SendEmail(CronJobBase):
         for to in to_emails:
             msg['To'] = to
             server.sendmail(fromx, to, msg.as_string())
-        
+
         server.quit()
 
         for c in initial_email_cases:
