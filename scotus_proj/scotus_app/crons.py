@@ -15,7 +15,7 @@ import sys
 
 
 class UpdateCases(CronJobBase):
-    RUN_AT_TIMES = ["10:00", "22:00"]
+    RUN_AT_TIMES = ["9:00"]
 
     schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'scotus_app.cron.update_cases'
@@ -209,7 +209,7 @@ class UpdateCases(CronJobBase):
 
 
 class SendEmail(CronJobBase):
-    RUN_AT_TIMES = ["11:00", "23:00"]
+    RUN_AT_TIMES = ["10:00"]
 
     schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'scotus_app.crons.send_email'
