@@ -30,9 +30,10 @@ class UpdateCases(CronJobBase):
     
     def update_new_dockets(self):
         # Get the max term year
-        term_year = Case.objects.aggregate(Max('term_year'))['term_year__max']
-        if term_year is None:
-            term_year = 20
+        # term_year = Case.objects.aggregate(Max('term_year'))['term_year__max']
+        # if term_year is None:
+        #     term_year = 20
+        term_year = 19
 
         # Get the max paid and free case numbers
         SWITCH_POINT = 5000
