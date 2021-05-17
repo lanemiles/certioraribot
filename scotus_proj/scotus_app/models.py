@@ -3,6 +3,8 @@ import json
 from datetime import datetime
 
 # Create your models here.
+
+
 class Case(models.Model):
     # JSON blob from SCOTUS website
     case_data = models.JSONField()
@@ -37,7 +39,6 @@ class Case(models.Model):
             return "%s v. %s" % (p, r)
         else:
             return p
-        
 
     def case_url(self):
         return 'https://www.supremecourt.gov/search.aspx?filename=/docket/docketfiles/html/public/%s.html' % self.docket_number
@@ -49,7 +50,7 @@ class Case(models.Model):
                 f.write(self.docket_number + "\n")
             return []
         return j["Petitioner"]
-        
+
     def petitioner_attorney_str(self):
         l = []
         for p in self.petitioner_attorneys():
