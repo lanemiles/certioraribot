@@ -1,0 +1,22 @@
+20-1590: <class 'django.db.utils.IntegrityError'> 
+20-8036: <class 'django.db.utils.IntegrityError'> 
+20-1590: <class 'django.db.utils.IntegrityError'> 
+20-8036: <class 'django.db.utils.IntegrityError'> 
+20-1590: <class 'django.db.utils.IntegrityError'> 
+20-8036: <class 'django.db.utils.IntegrityError'> 
+20-8040: <class 'django.db.utils.IntegrityError'> 
+20-8040: <class 'django.db.utils.IntegrityError'> 
+20-8040: <class 'django.db.utils.IntegrityError'> 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 
+20-8040: NOT NULL constraint failed: scotus_app_case.question_presented 

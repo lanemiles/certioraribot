@@ -22,7 +22,7 @@ class UpdateCases(CronJobBase):
 
     def do(self):
         self.update_new_dockets()
-        self.update_cfr_dockets()
+        # self.update_cfr_dockets()
         with open("update_history.txt", "a") as f:
             today = datetime.today().strftime("%D")
             f.write(today + "\n")
@@ -68,6 +68,7 @@ class UpdateCases(CronJobBase):
     def explore_new_docket(self, term_year, case_number, q):
         try:
             docket_num = "%s-%s" % (term_year, case_number)
+            print("Exploring %s" % docket_num)
             url = "https://www.supremecourt.gov/RSS/Cases/JSON/%s.json" % (
                 docket_num)
             data = requests.get(url)
@@ -87,10 +88,9 @@ class UpdateCases(CronJobBase):
                 q.put(case_number + 1)
             else:
                 print("Did not find: %s" % docket_num)
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             with open("new_docket_errors.txt", "a") as f:
-                f.write("%s-%s: %s \n", term_year, case_number, e)
+                f.write("%s-%s: %s \n" % (term_year, case_number, e))
             print("SOMETHING WENT WRONG TRYING TO CHECK DOCKET %s" % e)
 
     def explore_cfr_docket(self, docket_num):
@@ -116,10 +116,9 @@ class UpdateCases(CronJobBase):
                 else:
                     print("No change: %s" % docket_num)
                 case.save()
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
             with open("cfr_docket_errors.txt", "a") as f:
-                f.write("%s: %s \n", docket_num, e)
+                f.write("%s: %s \n" % (docket_num, e))
             print("SOMETHING WENT WRONG TRYING TO CHECK FOR CFR %s" % e)
 
     def download_pdf(self, url, file_name):
@@ -139,7 +138,7 @@ class UpdateCases(CronJobBase):
                 break
 
         if next_page is None:
-            raise ValueError("COULD NOT FIND END OF QP!")
+            raise Exception("COULD NOT FIND END OF QP!")
 
         # Trim to just pages we care about, QP always starts on page 2
         pages = pages[1:next_page]
@@ -174,16 +173,16 @@ class UpdateCases(CronJobBase):
         try:
             url = self.get_qp_url(json_data)
             if url is None:
-                return None
+                raise Exception("FAILED TO FIND URL")
 
             file_loc = "tmp.pdf"
             self.download_pdf(url, file_loc)
             return self.parse_pdf(file_loc)
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
+            print("FAILED TO GET THE QP")
             with open("qp_errors.txt", "a") as f:
-                f.write("%s: %s \n", docket_num, e)
-            return None
+                f.write("%s: %s \n" % (docket_num, e))
+            return "FAILED TO PARSE QP"
 
     def get_qp_url(self, json_data):
         url = None
