@@ -15,7 +15,7 @@ import sys
 
 
 class UpdateCases(CronJobBase):
-    RUN_AT_TIMES = ["10:00"]
+    RUN_AT_TIMES = ["10:00", "22:00"]
 
     schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'scotus_app.cron.update_cases'
@@ -210,19 +210,19 @@ class UpdateCases(CronJobBase):
 
 
 class SendEmail(CronJobBase):
-    RUN_AT_TIMES = ["11:00"]
+    RUN_AT_TIMES = ["11:00", "23:00"]
 
     schedule = Schedule(run_at_times=RUN_AT_TIMES)
     code = 'scotus_app.crons.send_email'
 
     def do(self):
-        # Bail if we already sent for today
-        with open("update_history.txt", "r") as f1:
-            with open("email_history.txt", "r") as f2:
-                last_updated_date = f1.readlines()[-1].strip()
-                last_email_date = f2.readlines()[-1].strip()
-                if last_email_date == last_updated_date:
-                    return
+        # # Bail if we already sent for today
+        # with open("update_history.txt", "r") as f1:
+        #     with open("email_history.txt", "r") as f2:
+        #         last_updated_date = f1.readlines()[-1].strip()
+        #         last_email_date = f2.readlines()[-1].strip()
+        #         if last_email_date == last_updated_date:
+        #             return
 
         initial_email_cases = Case.objects.filter(
             need_to_send_initial_email=True)
