@@ -11,7 +11,6 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from django.template.loader import render_to_string
-import sys
 
 
 class UpdateCases(CronJobBase):
@@ -21,8 +20,9 @@ class UpdateCases(CronJobBase):
     code = 'scotus_app.cron.update_cases'
 
     def do(self):
+        print("Starting update cases for %s" % datetime.today().strftime("%D"))
         self.update_new_dockets()
-        # self.update_cfr_dockets()
+        self.update_cfr_dockets()
         with open("update_history.txt", "a") as f:
             today = datetime.today().strftime("%D")
             f.write(today + "\n")
@@ -222,6 +222,7 @@ class SendEmail(CronJobBase):
         #         last_email_date = f2.readlines()[-1].strip()
         #         if last_email_date == last_updated_date:
         #             return
+        print("Starting email job for %s" % datetime.today().strftime("%D"))
 
         initial_email_cases = Case.objects.filter(
             need_to_send_initial_email=True)
