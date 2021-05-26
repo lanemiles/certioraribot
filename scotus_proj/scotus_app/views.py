@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from .models import Case
+from .models import Case, CronHistory
+from django.db.models import Max
 import json
 
 # Create your views here.
@@ -23,8 +24,16 @@ def detail(request, docket_number):
 
 
 def todays_cases(request):
-    initial_email_cases = Case.objects.filter(need_to_send_initial_email=True)
-    cfr_email_cases = Case.objects.filter(need_to_send_cfr_email=True)
+    last_email_sent = CronHistory.objects.filter(
+        cron_type=CronHistory.UPDATE_CASES).aggregate(Max('completed_at'))['completed_at__max']
+
+    initial_email_cases = Case.objects.filter(
+        date_initially_added__gt=last_email_sent
+    )
+
+    cfr_email_cases = Case.objects.filter(
+        date_cfr_added__gt=last_email_sent
+    )
 
     pretty_str = "There were %i CFRs requested and %i new cert petitions filed today." % (
         len(cfr_email_cases), len(initial_email_cases))
@@ -39,7 +48,7 @@ def todays_cases(request):
         "case_url": x.case_url(),
         "case_name": x.case_name(),
         "petitioner_attorneys": x.petitioner_attorney_str(),
-        "questions_presented": x.question_presented
+        "questions_presented": x.qp_str()
     } for x in initial_email_cases]
 
     return render(request, 'scotus_app/email.html', {
