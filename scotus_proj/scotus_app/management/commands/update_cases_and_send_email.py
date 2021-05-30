@@ -3,7 +3,7 @@ from ...crons import UpdateCases, SendEmail
 
 
 class Command(BaseCommand):
-    help = 'Updates cases and send email'
+    help = "Updates cases and send email"
 
     def add_arguments(self, parser):
         return
