@@ -27,8 +27,22 @@ def index(request):
 def detail(request, docket_number):
     case = Case.objects.get(docket_number=docket_number)
     pretty_json = json.dumps(json.loads(case.case_data), indent=4)
+    case_dict = {
+        "docket": case.docket_number,
+        "qp": case.question_presented,
+        "date_initially_added": case.date_initially_added,
+        "date_cfr_added": case.date_cfr_added,
+        "consider_for_cfr": case.consider_for_cfr,
+        "created_at": case.created_at,
+        "updated_at": case.updated_at,
+        "docketed_date": case.docketed_date_str(),
+        "case_name": case.case_name(),
+        "case_url": case.case_url(),
+        "petitioner_attorneys": case.petitioner_attorney_str(),
+        "case_data": pretty_json,
+    }
     return render(
-        request, "scotus_app/detail.html", {"case": case, "pretty_json": pretty_json}
+        request, "scotus_app/detail.html", {"case_dict": case_dict}
     )
 
 

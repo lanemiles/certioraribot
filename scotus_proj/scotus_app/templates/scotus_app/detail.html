@@ -1,5 +1,11 @@
-{% if case %}
-    <pre>{{ pretty_json | linebreaks }}</pre>
+{% if case_dict %}
+    {% for key, value in case_dict.items %}
+        {% if key == "case_data" %}
+        <b>{{key}}:</b> <pre>{{ value | linebreaks }}</pre> </br>
+        {% else %}
+        <b>{{key}}:</b> {{ value }} </br></br>
+        {% endif %}
+    {% endfor %}
 {% else %}
     <p>Case not found</p>
 {% endif %}
