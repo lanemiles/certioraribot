@@ -10,6 +10,7 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from django.template.loader import render_to_string
+from .utils import sort_and_massage_email_data
 
 
 class UpdateCases:
@@ -229,46 +230,9 @@ class SendEmail:
             date_initially_added__gt=last_email_sent
         )
 
-        initial_email_cases = sorted(
-            list(initial_email_cases),
-            key=lambda x: (x.case_number),
-        )
-
         cfr_email_cases = Case.objects.filter(date_cfr_added__gt=last_email_sent)
 
-        cfr_email_cases = sorted(
-            list(cfr_email_cases),
-            key=lambda x: (x.case_number),
-        )
-
-        pretty_str = (
-            "There were %i CFRs requested and %i new cert petitions filed today."
-            % (len(cfr_email_cases), len(initial_email_cases))
-        )
-
-        cfr_data = [
-            {
-                "docket": x.docket_number,
-                "case_url": x.case_url(),
-                "case_name": x.case_name(),
-                "court_below": x.court_below(),
-                "petitioner_attorneys": x.petitioner_attorney_str(),
-                "questions_presented": x.qp_str(),
-            }    
-            for x in cfr_email_cases
-        ]
-
-        initial_data = [
-            {
-                "docket": x.docket_number,
-                "case_url": x.case_url(),
-                "case_name": x.case_name(),
-                "court_below": x.court_below(),
-                "petitioner_attorneys": x.petitioner_attorney_str(),
-                "questions_presented": x.qp_str(),
-            }
-            for x in initial_email_cases
-        ]
+        email_data = sort_and_massage_email_data(initial_email_cases, cfr_email_cases)
 
         server = smtplib.SMTP("smtp.gmail.com:587")
         server.starttls()
@@ -276,18 +240,10 @@ class SendEmail:
         server.login("certioraribot@gmail.com", "scotus123")
 
         fromx = "certioraribot@gmail.com"
-        subject = (
-            "[Cert Alert!] New Cert Petitions for %s"
-            % datetime.now().strftime("%B %d, %Y")
+        subject = "[Cert Alert!] New Cert Petitions for %s" % datetime.now().strftime(
+            "%B %d, %Y"
         )
-        html = render_to_string(
-            "scotus_app/email.html",
-            {
-                "pretty_str": pretty_str,
-                "cfr_data": cfr_data,
-                "initial_data": initial_data,
-            },
-        )
+        html = render_to_string("scotus_app/email.html", email_data)
 
         msg = MIMEText(html, "html")
         msg["Subject"] = subject

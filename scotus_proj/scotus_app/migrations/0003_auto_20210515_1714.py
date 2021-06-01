@@ -6,19 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scotus_app', '0002_case_docket_number'),
+        ("scotus_app", "0002_case_docket_number"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='case',
-            name='case_number',
+            model_name="case",
+            name="case_number",
             field=models.IntegerField(default=-1),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='case',
-            name='term_year',
+            model_name="case",
+            name="term_year",
             field=models.IntegerField(default=-1),
             preserve_default=False,
         ),

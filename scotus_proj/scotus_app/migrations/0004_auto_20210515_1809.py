@@ -6,25 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scotus_app', '0003_auto_20210515_1714'),
+        ("scotus_app", "0003_auto_20210515_1714"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='case',
-            name='consider_for_cfr',
+            model_name="case",
+            name="consider_for_cfr",
             field=models.BooleanField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='case',
-            name='sent_cfr_email',
+            model_name="case",
+            name="sent_cfr_email",
             field=models.BooleanField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='case',
-            name='sent_initial_email',
+            model_name="case",
+            name="sent_initial_email",
             field=models.BooleanField(default=0),
             preserve_default=False,
         ),

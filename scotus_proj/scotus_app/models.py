@@ -84,7 +84,6 @@ class Case(models.Model):
             return json_data["LowerCourt"]
         else:
             return "Failed to find lower court."
-        
 
     def case_url(self):
         return (
@@ -115,7 +114,7 @@ class Case(models.Model):
         return ",".join(l)
 
     def qp_str(self):
-        if self.question_presented is not None and self.question_presented is not "":
+        if self.question_presented is not None and self.question_presented != "":
             return self.question_presented[:2000] + "..."
         else:
             return "Failed to identify the QP."

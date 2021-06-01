@@ -7,51 +7,89 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scotus_app', '0008_auto_20210525_1920'),
+        ("scotus_app", "0008_auto_20210525_1920"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CronHistory',
+            name="CronHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('cron_type', models.CharField(choices=[('UPDATE_CASES', 'UPDATE_CASES'), ('SEND_EMAIL', 'SEND_EMAIL')], max_length=100)),
-                ('started_at', models.DateTimeField()),
-                ('completed_at', models.DateTimeField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "cron_type",
+                    models.CharField(
+                        choices=[
+                            ("UPDATE_CASES", "UPDATE_CASES"),
+                            ("SEND_EMAIL", "SEND_EMAIL"),
+                        ],
+                        max_length=100,
+                    ),
+                ),
+                ("started_at", models.DateTimeField()),
+                ("completed_at", models.DateTimeField()),
             ],
         ),
         migrations.CreateModel(
-            name='Error',
+            name="Error",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('error_type', models.CharField(choices=[('LOADING_NEW_CASE', 'LOADING_NEW_CASE'), ('LOADING_CFR_CASE', 'LOADING_CFR_CASE'), ('PARSING_QP', 'PARSING_QP'), ('MISSING_PETITIONER', 'MISSING_PETITIONER')], max_length=100)),
-                ('error_date', models.DateTimeField()),
-                ('docket_number', models.CharField(max_length=100)),
-                ('error_msg', models.TextField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "error_type",
+                    models.CharField(
+                        choices=[
+                            ("LOADING_NEW_CASE", "LOADING_NEW_CASE"),
+                            ("LOADING_CFR_CASE", "LOADING_CFR_CASE"),
+                            ("PARSING_QP", "PARSING_QP"),
+                            ("MISSING_PETITIONER", "MISSING_PETITIONER"),
+                        ],
+                        max_length=100,
+                    ),
+                ),
+                ("error_date", models.DateTimeField()),
+                ("docket_number", models.CharField(max_length=100)),
+                ("error_msg", models.TextField()),
             ],
         ),
         migrations.RemoveField(
-            model_name='case',
-            name='need_to_send_cfr_email',
+            model_name="case",
+            name="need_to_send_cfr_email",
         ),
         migrations.RemoveField(
-            model_name='case',
-            name='need_to_send_initial_email',
+            model_name="case",
+            name="need_to_send_initial_email",
         ),
         migrations.AddField(
-            model_name='case',
-            name='date_cfr_added',
+            model_name="case",
+            name="date_cfr_added",
             field=models.DateTimeField(null=True),
         ),
         migrations.AddField(
-            model_name='case',
-            name='date_initially_added',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="case",
+            name="date_initially_added",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='case',
-            name='question_presented',
+            model_name="case",
+            name="question_presented",
             field=models.TextField(null=True),
         ),
     ]

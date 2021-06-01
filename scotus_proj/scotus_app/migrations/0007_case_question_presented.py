@@ -6,14 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scotus_app', '0006_rename_need_to_send_intial_email_case_need_to_send_initial_email'),
+        (
+            "scotus_app",
+            "0006_rename_need_to_send_intial_email_case_need_to_send_initial_email",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='case',
-            name='question_presented',
-            field=models.TextField(default=''),
+            model_name="case",
+            name="question_presented",
+            field=models.TextField(default=""),
             preserve_default=False,
         ),
     ]

@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from .models import Case, CronHistory
-from django.db.models import Max
+from .models import Case
+from .utils import sort_and_massage_email_data
 import json
+from datetime import datetime
 
 # Create your views here.
 
@@ -42,66 +43,27 @@ def detail(request, docket_number):
         "petitioner_attorneys": case.petitioner_attorney_str(),
         "case_data": pretty_json,
     }
-    return render(
-        request, "scotus_app/detail.html", {"case_dict": case_dict}
-    )
+    return render(request, "scotus_app/detail.html", {"case_dict": case_dict})
+
+
+def test_email(request):
+    initial_email_cases = Case.objects.all()[11:20]
+    cfr_email_cases = Case.objects.all()[1:10]
+
+    email_data = sort_and_massage_email_data(initial_email_cases, cfr_email_cases)
+
+    return render(request, "scotus_app/email.html", email_data)
 
 
 def todays_cases(request):
-    last_email_sent = CronHistory.objects.filter(
-        cron_type=CronHistory.UPDATE_CASES
-    ).aggregate(Max("completed_at"))["completed_at__max"]
+    start_of_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-    initial_email_cases = Case.objects.all()[11:20]#filter(date_initially_added__gt=last_email_sent)
-    initial_email_cases = sorted(
-        list(initial_email_cases),
-        key=lambda x: (x.case_number),
-    )
+    initial_email_cases = Case.objects.filter(date_initially_added__gte=start_of_today)
+    cfr_email_cases = Case.objects.filter(date_cfr_added__gte=start_of_today)
 
-    cfr_email_cases = Case.objects.all()[1:10]#filter(date_cfr_added__gt=last_email_sent)
-    cfr_email_cases = sorted(
-        list(cfr_email_cases),
-        key=lambda x: (x.case_number),
-    )
+    email_data = sort_and_massage_email_data(initial_email_cases, cfr_email_cases)
 
-    pretty_str = (
-        "There were %i CFRs requested and %i new cert petitions filed today."
-        % (len(cfr_email_cases), len(initial_email_cases))
-    )
-
-    cfr_data = [
-        {
-            "docket": x.docket_number,
-            "case_url": x.case_url(),
-            "case_name": x.case_name(),
-            "court_below": x.court_below(),
-            "petitioner_attorneys": x.petitioner_attorney_str(),
-            "questions_presented": x.qp_str(),
-        }    
-        for x in cfr_email_cases
-    ]
-
-    initial_data = [
-        {
-            "docket": x.docket_number,
-            "case_url": x.case_url(),
-            "case_name": x.case_name(),
-            "court_below": x.court_below(),
-            "petitioner_attorneys": x.petitioner_attorney_str(),
-            "questions_presented": x.qp_str(),
-        }
-        for x in initial_email_cases
-    ]
-
-    return render(
-        request,
-        "scotus_app/email.html",
-        {
-            "pretty_str": pretty_str,
-            "cfr_data": cfr_data,
-            "initial_data": initial_data,
-        },
-    )
+    return render(request, "scotus_app/email.html", email_data)
 
 
 def cases_to_consider_for_cfr(request):
