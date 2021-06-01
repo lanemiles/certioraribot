@@ -108,6 +108,7 @@ class UpdateCases:
                     print("Found CFR: %s" % docket_num)
                     case.date_cfr_added = datetime.now()
                     case.consider_for_cfr = False
+                    case.question_presented = self.get_qp(json_data, docket_num)
                 elif not consider_for_cfr:
                     print("Past CFR: %s" % docket_num)
                     case.consider_for_cfr = False
@@ -227,7 +228,18 @@ class SendEmail:
         initial_email_cases = Case.objects.filter(
             date_initially_added__gt=last_email_sent
         )
+
+        initial_email_cases = sorted(
+            list(initial_email_cases),
+            key=lambda x: (x.case_number),
+        )
+
         cfr_email_cases = Case.objects.filter(date_cfr_added__gt=last_email_sent)
+
+        cfr_email_cases = sorted(
+            list(cfr_email_cases),
+            key=lambda x: (x.case_number),
+        )
 
         pretty_str = (
             "There were %i CFRs requested and %i new cert petitions filed today."
@@ -235,7 +247,15 @@ class SendEmail:
         )
 
         cfr_data = [
-            {"url": x.case_url(), "docket": x.docket_number} for x in cfr_email_cases
+            {
+                "docket": x.docket_number,
+                "case_url": x.case_url(),
+                "case_name": x.case_name(),
+                "court_below": x.court_below(),
+                "petitioner_attorneys": x.petitioner_attorney_str(),
+                "questions_presented": x.qp_str(),
+            }    
+            for x in cfr_email_cases
         ]
 
         initial_data = [
@@ -243,6 +263,7 @@ class SendEmail:
                 "docket": x.docket_number,
                 "case_url": x.case_url(),
                 "case_name": x.case_name(),
+                "court_below": x.court_below(),
                 "petitioner_attorneys": x.petitioner_attorney_str(),
                 "questions_presented": x.qp_str(),
             }
@@ -256,7 +277,7 @@ class SendEmail:
 
         fromx = "certioraribot@gmail.com"
         subject = (
-            "[Certiorari Bot] New Cert Petitions for %s"
+            "[Cert Alert!] New Cert Petitions for %s"
             % datetime.now().strftime("%B %d, %Y")
         )
         html = render_to_string(

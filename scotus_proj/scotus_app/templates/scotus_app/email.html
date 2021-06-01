@@ -2,12 +2,14 @@
 
 {% if cfr_data %}
     <h3>New CFRs</h3>
-    <p>Docket Numbers</p>
-    <ul>
     {% for case in cfr_data %}
-        <li><a href="{{ case.case_url }}">{{ case.docket }}</a></li>
+    <p style='margin: 0; padding: 1;'>Docket Number: <a href="{{ case.case_url }}">{{ case.docket }}</a></p>
+    <p style='margin: 0; padding: 1;'>Case Name: {{ case.case_name }}</p>
+    <p style='margin: 0; padding: 1;'>Court Below: {{ case.court_below }}</p>
+    <p style='margin: 0; padding: 1;'>Petitioner Attorneys: {{ case.petitioner_attorneys }}</p>
+    <p style='margin: 0; padding: 1;'>Questions Presented: {{ case.questions_presented }}</p>
+    <br>
     {% endfor %}
-    </ul>
 {% endif %}
 <br>
 {% if initial_data %}
@@ -16,6 +18,7 @@
     {% for case in initial_data %}
     <p style='margin: 0; padding: 1;'>Docket Number: <a href="{{ case.case_url }}">{{ case.docket }}</a></p>
     <p style='margin: 0; padding: 1;'>Case Name: {{ case.case_name }}</p>
+    <p style='margin: 0; padding: 1;'>Court Below: {{ case.court_below }}</p>
     <p style='margin: 0; padding: 1;'>Petitioner Attorneys: {{ case.petitioner_attorneys }}</p>
     <p style='margin: 0; padding: 1;'>Questions Presented: {{ case.questions_presented }}</p>
     <br>

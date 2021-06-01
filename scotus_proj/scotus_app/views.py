@@ -37,6 +37,7 @@ def detail(request, docket_number):
         "updated_at": case.updated_at,
         "docketed_date": case.docketed_date_str(),
         "case_name": case.case_name(),
+        "court_below": case.court_below(),
         "case_url": case.case_url(),
         "petitioner_attorneys": case.petitioner_attorney_str(),
         "case_data": pretty_json,
@@ -51,9 +52,17 @@ def todays_cases(request):
         cron_type=CronHistory.UPDATE_CASES
     ).aggregate(Max("completed_at"))["completed_at__max"]
 
-    initial_email_cases = Case.objects.filter(date_initially_added__gt=last_email_sent)
+    initial_email_cases = Case.objects.all()[11:20]#filter(date_initially_added__gt=last_email_sent)
+    initial_email_cases = sorted(
+        list(initial_email_cases),
+        key=lambda x: (x.case_number),
+    )
 
-    cfr_email_cases = Case.objects.filter(date_cfr_added__gt=last_email_sent)
+    cfr_email_cases = Case.objects.all()[1:10]#filter(date_cfr_added__gt=last_email_sent)
+    cfr_email_cases = sorted(
+        list(cfr_email_cases),
+        key=lambda x: (x.case_number),
+    )
 
     pretty_str = (
         "There were %i CFRs requested and %i new cert petitions filed today."
@@ -61,7 +70,15 @@ def todays_cases(request):
     )
 
     cfr_data = [
-        {"case_url": x.case_url(), "docket": x.docket_number} for x in cfr_email_cases
+        {
+            "docket": x.docket_number,
+            "case_url": x.case_url(),
+            "case_name": x.case_name(),
+            "court_below": x.court_below(),
+            "petitioner_attorneys": x.petitioner_attorney_str(),
+            "questions_presented": x.qp_str(),
+        }    
+        for x in cfr_email_cases
     ]
 
     initial_data = [
@@ -69,6 +86,7 @@ def todays_cases(request):
             "docket": x.docket_number,
             "case_url": x.case_url(),
             "case_name": x.case_name(),
+            "court_below": x.court_below(),
             "petitioner_attorneys": x.petitioner_attorney_str(),
             "questions_presented": x.qp_str(),
         }
