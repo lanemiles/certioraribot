@@ -249,7 +249,7 @@ class SendEmail:
         msg["Subject"] = subject
         msg["From"] = fromx
 
-        to_emails = ["lmiles1234@gmail.com", "martinsicilian@gmail.com"]
+        to_emails = ["lmiles1234@gmail.com", "martinsicilian@gmail.com", "kkturner@law.stanford.edu", "ecdumont@law.stanford.edu", "yaira@law.stanford.edu"]
         for to in to_emails:
             msg["To"] = to
             server.sendmail(fromx, to, msg.as_string())
