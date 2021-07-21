@@ -26,7 +26,8 @@ class UpdateCases:
 
     def update_new_dockets(self):
         # Get the max term year
-        term_year = Case.objects.aggregate(Max("term_year"))["term_year__max"]
+        # term_year = Case.objects.aggregate(Max("term_year"))["term_year__max"]
+        term_year = 21
         if term_year is None:
             term_year = 21
 
